@@ -1,4 +1,4 @@
-package com.example.HongBridge.entity;
+package com.example.HongBridge.ai.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
