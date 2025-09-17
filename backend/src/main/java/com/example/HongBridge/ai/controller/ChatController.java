@@ -1,6 +1,6 @@
 package com.example.HongBridge.controller;
 
-import com.example.HongBridge.dto.ChatRequest;
+import com.example.HongBridge.dto.chat.ChatRequest;
 import com.example.HongBridge.service.OpenAiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

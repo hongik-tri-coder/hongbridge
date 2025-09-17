@@ -1,4 +1,4 @@
-package com.example.HongBridge.dto;
+package com.example.HongBridge.dto.chat;
 
 import jakarta.validation.constraints.NotBlank;
 
