@@ -1,6 +1,6 @@
-package com.example.HongBridge.repository;
+package com.example.HongBridge.ai.repository;
 
-import com.example.HongBridge.entity.SecondCategory;
+import com.example.HongBridge.ai.entity.SecondCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

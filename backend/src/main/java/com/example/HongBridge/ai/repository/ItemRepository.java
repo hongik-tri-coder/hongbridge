@@ -1,6 +1,6 @@
-package com.example.HongBridge.repository;
+package com.example.HongBridge.ai.repository;
 
-import com.example.HongBridge.entity.Item;
+import com.example.HongBridge.ai.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 

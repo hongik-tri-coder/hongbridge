@@ -1,9 +1,9 @@
-package com.example.HongBridge.service;
+package com.example.HongBridge.ai.service;
 
-import com.example.HongBridge.entity.Item;
-import com.example.HongBridge.entity.SecondCategory;
-import com.example.HongBridge.repository.ItemRepository;
-import com.example.HongBridge.repository.SecondCategoryRepository;
+import com.example.HongBridge.ai.entity.Item;
+import com.example.HongBridge.ai.entity.SecondCategory;
+import com.example.HongBridge.ai.repository.ItemRepository;
+import com.example.HongBridge.ai.repository.SecondCategoryRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
