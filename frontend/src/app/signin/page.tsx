@@ -60,7 +60,7 @@ export default function SignInPage() {
       <VStack align="stretch" gap={5}>
         <Box>
           <Heading size="lg" mb={1}>로그인</Heading>
-          <Text color="gray.600">HongBridge에 다시 오신 걸 환영해요.</Text>
+          <Text color="gray.600">HongBridge에 오신 걸 환영해요.</Text>
         </Box>
 
         {/* 학번 */}
@@ -96,7 +96,7 @@ export default function SignInPage() {
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}
               onKeyDown={onKeyDown}
-              pr="10"             // 아이콘 공간
+              pr="10"             // 아이콘 공간(꼭 필요)
             />
             <IconButton
               aria-label={showPwd ? "비밀번호 숨기기" : "비밀번호 보기"}
@@ -125,10 +125,10 @@ export default function SignInPage() {
           {loading ? "로그인 중…" : "로그인"}
         </Button>
 
-        <HStack justify="space-between">
-          <Link as={NextLink} href="/forgot-password" color="gray.700" textDecoration="underline">
+        <HStack justify="end">
+          {/* <Link as={NextLink} href="/forgot-password" color="gray.700" textDecoration="underline">
             비밀번호 찾기
-          </Link>
+          </Link> */}
           <Text color="gray.700">
             처음이신가요?{" "}
             <Link as={NextLink} href="/signup" textDecoration="underline">
