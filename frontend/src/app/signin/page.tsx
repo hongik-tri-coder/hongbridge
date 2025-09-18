@@ -8,6 +8,7 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { toastBus } from "@/utils/toast-bus";
 import { signInWithStudentId } from "@/lib/api";
+import router from "next/router";
 
 export default function SignInPage() {
   const [studentId, setStudentId] = useState("");
@@ -35,7 +36,7 @@ export default function SignInPage() {
     try {
       await signInWithStudentId({ studentId: studentId.trim(), password: pwd });
       toastBus.success("로그인 완료", "환영합니다!");
-      // router.push("/")
+      router.push("/")
     } catch (e: any) {
       const msg = (e?.status === 401 || e?.status === 403 || /invalid|credential|자격|비밀번호|password/i.test(String(e?.message)))
         ? "학번과 비밀번호를 확인해주세요."
