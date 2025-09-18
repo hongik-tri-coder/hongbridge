@@ -4,6 +4,7 @@ import { Container } from "@chakra-ui/react";
 import Header from "@/components/Header";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
+import AuthProvider from "./auth-provider";
 
 export const metadata: Metadata = {
   title: "HongBridge",
@@ -15,11 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" suppressHydrationWarning>
       <body>
         <Providers>
-          <Header />
-          <Container maxW="6xl" py={8}>
-            {children}
-          </Container>
-          <Toaster /> {/* 전역 토스터 */}
+          <AuthProvider>
+            <Header />
+            <Container maxW="6xl" py={8}>
+              {children}
+            </Container>
+            <Toaster /> {/* 전역 토스터 */}
+          </AuthProvider>
         </Providers>
       </body>
     </html>
