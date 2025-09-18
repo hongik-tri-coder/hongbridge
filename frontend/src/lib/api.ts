@@ -18,3 +18,27 @@ export async function signInWithStudentId(params: { studentId: string; password:
   }
   return res.json();
 }
+
+export async function signUp(body: {
+  studentId: string;
+  name: string;
+  grade: number;
+  email: string;
+  majorId: number;
+  password: string;
+}) {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  const res = await fetch(`${base}/api/auth/sign-up`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    // 세션이 쿠키라면 필요: credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    const err: any = new Error(txt || res.statusText);
+    (err.status = res.status);
+    throw err;
+  }
+  return res.json().catch(() => ({}));
+}
