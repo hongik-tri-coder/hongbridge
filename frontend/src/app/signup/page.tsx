@@ -7,12 +7,12 @@ import {
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-import { useRouter } from "next/navigation";          // ✅ App Router
+import { useRouter } from "next/navigation";
 import { toastBus } from "@/utils/toast-bus";
 import { signUp } from "@/lib/api";
 
 export default function SignUpPage() {
-  const router = useRouter();                          // ✅
+  const router = useRouter();
   const [studentId, setStudentId] = useState("");
   const [name, setName] = useState("");
   const [grade, setGrade] = useState<string>("");
@@ -67,7 +67,7 @@ export default function SignUpPage() {
       });
 
       toastBus.success("회원가입 완료", "이제 로그인할 수 있어요.");
-      router.push("/signin");                         // ✅ navigation
+      router.push("/signin");
     } catch (e: any) {
       const msg = /duplicate|중복|exists/i.test(String(e?.message))
         ? "이미 가입된 학번/이메일입니다."

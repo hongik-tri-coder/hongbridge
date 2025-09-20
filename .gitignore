@@ -39,9 +39,5 @@ out/
 
 ### nodejs ###
 **/node_modules/
-backend/.gradle
-.idea
-backend/build
-backend/.gradle
-backend/build
-db_exam_term/examterm.ipynb
+backend/build/resources/main/application.properties
+backend/src/main/resources/application.properties
