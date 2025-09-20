@@ -39,3 +39,6 @@ out/
 
 ### nodejs ###
 **/node_modules/
+backend/.gradle
+.idea
+backend/build
