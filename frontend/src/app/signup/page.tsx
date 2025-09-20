@@ -3,15 +3,16 @@
 import { useRef, useState } from "react";
 import {
   Box, Heading, Text, VStack, HStack, Input, Button,
-  IconButton, Link, Field, createListCollection,
+  IconButton, Link, Field, createListCollection, Select, Portal,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
+import { useRouter } from "next/navigation";
 import { toastBus } from "@/utils/toast-bus";
 import { signUp } from "@/lib/api";
-import router from "next/router";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [studentId, setStudentId] = useState("");
   const [name, setName] = useState("");
   const [grade, setGrade] = useState<string>("");
@@ -49,10 +50,7 @@ export default function SignUpPage() {
 
   const onSubmit = async () => {
     const err = validate();
-    if (err) {
-      toastBus.warning("입력 확인", err);
-      return;
-    }
+    if (err) { toastBus.warning("입력 확인", err); return; }
     if (sendingRef.current) return;
 
     setLoading(true);
@@ -69,7 +67,7 @@ export default function SignUpPage() {
       });
 
       toastBus.success("회원가입 완료", "이제 로그인할 수 있어요.");
-      router.push("/signin")
+      router.push("/signin");
     } catch (e: any) {
       const msg = /duplicate|중복|exists/i.test(String(e?.message))
         ? "이미 가입된 학번/이메일입니다."
@@ -191,8 +189,39 @@ export default function SignUpPage() {
           />
         </Field.Root>
 
-        {/* 학년 */}
-        {/* (생략: 기존 Select.Root 코드 그대로 유지) */}
+        {/* 학년 (Select.Root) */}
+        <Field.Root>
+          <Field.Label>학년</Field.Label>
+          <Select.Root
+            collection={gradeOptions}
+            value={grade ? [grade] : []}                     // 단일 선택도 배열
+            onValueChange={(d) => setGrade(d.value[0] ?? "")}
+            size="md"
+            width="100%"
+          >
+            <Select.HiddenSelect />
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText placeholder="학년 선택" />
+              </Select.Trigger>
+              <Select.IndicatorGroup>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+            <Portal>
+              <Select.Positioner>
+                <Select.Content>
+                  {gradeOptions.items.map((opt) => (
+                    <Select.Item key={opt.value} item={opt}>
+                      {opt.label}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
+        </Field.Root>
 
         {/* 이메일 */}
         <Field.Root>
@@ -213,6 +242,7 @@ export default function SignUpPage() {
           <Field.Label>전공</Field.Label>
           <Input
             value={majorId}
+            placeholder="예) 101"
             onChange={(e) => setMajorId(e.target.value)}
             onKeyDown={onKeyDown}
             w="100%"
@@ -227,6 +257,7 @@ export default function SignUpPage() {
           _hover={{ bg: "gray.800" }}
           onClick={onSubmit}
           disabled={loading}
+          aria-busy={loading}
         >
           {loading ? "가입 중…" : "가입하기"}
         </Button>
