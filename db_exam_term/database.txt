@@ -1,0 +1,72 @@
+CREATE DATABASE qnet_crawling2
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_general_ci;
+
+USE qnet_crawling2;
+
+-- 분야 테이블
+CREATE TABLE field (
+    id VARCHAR(50) PRIMARY KEY,   -- 분야 ID
+    depth1 VARCHAR(255),          -- 직무분야
+    depth2 VARCHAR(255)           -- 분류
+);
+
+-- 자격증 테이블 (dateId 제거, JMCD 기준으로 일정 연결)
+CREATE TABLE qualification (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    fieldId VARCHAR(50),          -- FK: field.id
+    course int,
+    JMCD VARCHAR(20) UNIQUE,
+    FOREIGN KEY (fieldId) REFERENCES field(id)
+);
+
+-- 시험 일정 테이블 (jmCd + year + period 복합키)
+CREATE TABLE date (
+    jmCd VARCHAR(20) NOT NULL,    -- qualification.JMCD 참조
+    year INT NOT NULL,
+    period INT NOT NULL,
+    -- 필기 일정
+    docRegStart DATETIME,
+    docRegEnd DATETIME,
+    docVacancyStart DATETIME,
+    docVacancyEnd DATETIME,
+    docExamStart DATETIME,
+    docExamEnd DATETIME,
+    docPass DATETIME,
+    -- 실기 일정
+    pracRegStart DATETIME,
+    pracRegEnd DATETIME,
+    pracVacancyStart DATETIME,
+    pracVacancyEnd DATETIME,
+    pracExamStart DATETIME,
+    pracExamEnd DATETIME,
+    pracPass DATETIME,
+    PRIMARY KEY (jmCd, year, period),
+    FOREIGN KEY (jmCd) REFERENCES qualification(JMCD)
+);
+
+-- 확인용
+SELECT * FROM field;
+SELECT * FROM qualification;
+SELECT * FROM date;
+
+UPDATE qualification
+SET course = NULL;
+
+-- 일정 초기화
+TRUNCATE TABLE field;
+
+-- 특정 자격증의 일정 보기
+SELECT q.name, d.*
+FROM qualification q
+JOIN date d ON q.JMCD = d.jmCd
+WHERE q.name = '전기공사기사';
+
+-- 2025년 전체 시험 일정
+SELECT q.name, f.depth1, f.depth2, d.*
+FROM date d
+JOIN qualification q ON d.jmCd = q.JMCD
+JOIN field f ON q.fieldId = f.id
+WHERE d.year = 2025;
+
