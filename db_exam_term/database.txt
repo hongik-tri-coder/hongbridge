@@ -16,7 +16,7 @@ CREATE TABLE qualification (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     fieldId VARCHAR(50),          -- FK: field.id
-    course int,
+    rate double,
     JMCD VARCHAR(20) UNIQUE,
     FOREIGN KEY (fieldId) REFERENCES field(id)
 );
