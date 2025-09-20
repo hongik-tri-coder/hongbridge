@@ -42,3 +42,6 @@ out/
 backend/.gradle
 .idea
 backend/build
+backend/.gradle
+backend/build
+db_exam_term/examterm.ipynb
