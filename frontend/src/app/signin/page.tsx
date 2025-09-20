@@ -6,11 +6,12 @@ import {
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
+import { useRouter } from "next/navigation";           // ✅ 여기!
 import { toastBus } from "@/utils/toast-bus";
 import { signInWithStudentId } from "@/lib/api";
-import router from "next/router";
 
 export default function SignInPage() {
+  const router = useRouter();                           // ✅ 여기!
   const [studentId, setStudentId] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -36,12 +37,13 @@ export default function SignInPage() {
     try {
       await signInWithStudentId({ studentId: studentId.trim(), password: pwd });
       toastBus.success("로그인 완료", "환영합니다!");
-      router.push("/")
+      router.push("/");                                 // ✅ App Router 전환
     } catch (e: any) {
-      const msg = (e?.status === 401 || e?.status === 403 || /invalid|credential|자격|비밀번호|password/i.test(String(e?.message)))
-        ? "학번과 비밀번호를 확인해주세요."
-        : (e?.message ?? "서버 오류가 발생했어요.");
-    toastBus.error("로그인 실패", msg);
+      const msg =
+        e?.status === 401 || e?.status === 403 || /invalid|credential|자격|비밀번호|password/i.test(String(e?.message))
+          ? "학번과 비밀번호를 확인해주세요."
+          : (e?.message ?? "서버 오류가 발생했어요.");
+      toastBus.error("로그인 실패", msg);               // ✅ 들여쓰기/범위 수정
     } finally {
       setLoading(false);
       sendingRef.current = false;
@@ -97,7 +99,7 @@ export default function SignInPage() {
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}
               onKeyDown={onKeyDown}
-              pr="10"             // 아이콘 공간(꼭 필요)
+              pr="10"
             />
             <IconButton
               aria-label={showPwd ? "비밀번호 숨기기" : "비밀번호 보기"}
@@ -122,14 +124,12 @@ export default function SignInPage() {
           _hover={{ bg: "gray.800" }}
           onClick={onSubmit}
           disabled={loading}
+          aria-busy={loading}
         >
           {loading ? "로그인 중…" : "로그인"}
         </Button>
 
         <HStack justify="end">
-          {/* <Link as={NextLink} href="/forgot-password" color="gray.700" textDecoration="underline">
-            비밀번호 찾기
-          </Link> */}
           <Text color="gray.700">
             처음이신가요?{" "}
             <Link as={NextLink} href="/signup" textDecoration="underline">
