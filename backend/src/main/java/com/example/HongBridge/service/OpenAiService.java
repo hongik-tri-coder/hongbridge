@@ -37,38 +37,41 @@ public class OpenAiService {
     }
 
     public String getChatResponse(String userMessage) throws Exception {
+        System.out.println("✅ [DEBUG] 사용자 메시지: " + userMessage);
+
         String keyword = extractKeyword(userMessage);
-        //System.out.println("✅ [DEBUG] 추출된 키워드: " + keyword);
+        System.out.println("✅ [DEBUG] 추출된 키워드: " + keyword);
+
         if (keyword.isEmpty()) {
             return "질문에서 키워드를 찾지 못했습니다. 다시 입력해 주세요.";
         }
 
-        // SecondCategory에서 name 또는 firstCategoryName에 키워드가 포함된 항목 찾기
+        // DB 조회
         List<SecondCategory> matchedCategories = secondCategoryRepository
                 .findByNameContainingOrFirstCategoryNameContaining(keyword, keyword);
-//        System.out.println("✅ [DEBUG] 매칭된 SecondCategory 개수: " + matchedCategories.size());
-//        for (SecondCategory category : matchedCategories) {
-//            System.out.println("🧩 [DEBUG] - 분야명: " + category.getFirstCategoryName() + " / 세부분야명: " + category.getName());
-//        }
-//        System.out.println("✅ [DEBUG] 전체 SecondCategory 목록:");
-//        List<SecondCategory> allCategories = secondCategoryRepository.findAll();
-//        for (SecondCategory category : allCategories) {
-//            System.out.println("🔹 name: " + category.getName() +
-//                    " | firstCategoryName: " + category.getFirstCategoryName());
-//        }
+        System.out.println("✅ [DEBUG] 매칭된 SecondCategory 개수: " + matchedCategories.size());
+        for (SecondCategory category : matchedCategories) {
+            System.out.println("🧩 [DEBUG] - 분야명: " + category.getFirstCategoryName() + " / 세부분야명: " + category.getName());
+        }
+
         if (matchedCategories.isEmpty()) {
+            System.out.println("⚠️ [DEBUG] DB에 매칭되는 카테고리가 없어서 일반 GPT 응답 사용");
             return getGeneralChatResponse(userMessage);
         }
 
-        // 관련된 second_category_id 수집
+        // 관련 second_category_id 수집
         List<Long> categoryIds = matchedCategories.stream()
                 .map(SecondCategory::getId)
                 .collect(Collectors.toList());
 
-        // 해당 id들과 일치하는 자격증(Item) 검색
         List<Item> items = itemRepository.findBySecondCategoryIdIn(categoryIds);
+        System.out.println("✅ [DEBUG] 매칭된 Item 개수: " + items.size());
+        for (Item item : items) {
+            System.out.println("📌 [DEBUG] 자격증: " + item.getName() + " | 세부분야: " + item.getSecondCategory().getName());
+        }
 
         if (items.isEmpty()) {
+            System.out.println("⚠️ [DEBUG] DB에서 자격증 정보가 없어서 일반 GPT 응답 사용");
             return getGeneralChatResponse(userMessage);
         }
 
@@ -77,7 +80,6 @@ public class OpenAiService {
             items = items.subList(0, 100);
         }
 
-        // 자격증 정보 문자열 생성
         String dbInfo = items.stream()
                 .map(item -> {
                     SecondCategory cat = item.getSecondCategory();
@@ -95,6 +97,8 @@ public class OpenAiService {
                         dbInfo + "\n" +
                         "=========================";
 
+        System.out.println("✅ [DEBUG] OpenAI systemPrompt 준비 완료");
+
         String requestBody = "{\n" +
                 "  \"model\": \"gpt-3.5-turbo\",\n" +
                 "  \"messages\": [\n" +
@@ -104,6 +108,7 @@ public class OpenAiService {
                 "}";
 
         // OpenAI API 호출
+        System.out.println("✅ [DEBUG] OpenAI API 요청 시작");
         URL url = new URL(apiUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -120,24 +125,26 @@ public class OpenAiService {
         }
 
         int statusCode = conn.getResponseCode();
+        System.out.println("✅ [DEBUG] OpenAI API 응답 코드: " + statusCode);
+
         InputStream responseStream = (statusCode >= 200 && statusCode < 300)
                 ? conn.getInputStream()
                 : conn.getErrorStream();
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(responseStream));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-        String responseBody = sb.toString();
+        String responseBody = new BufferedReader(new InputStreamReader(responseStream))
+                .lines().collect(Collectors.joining("\n"));
+
+        System.out.println("✅ [DEBUG] OpenAI API 응답 바디: " + responseBody);
 
         if (statusCode != 200) {
             throw new RuntimeException("OpenAI API 요청 실패 (" + statusCode + "): " + responseBody);
         }
 
         JsonNode response = objectMapper.readTree(responseBody);
-        return response.get("choices").get(0).get("message").get("content").asText();
+        String result = response.get("choices").get(0).get("message").get("content").asText();
+        System.out.println("✅ [DEBUG] 최종 GPT 응답: " + result);
+
+        return result;
     }
 
     private String extractKeyword(String message) {
@@ -146,7 +153,6 @@ public class OpenAiService {
         String[] tokens = message.split("\\s+");
         for (String token : tokens) {
             String clean = token.replaceAll("[^가-힣a-zA-Z0-9]", "");
-            // '학과', '과', '관련된', '분야', '자격증' 같은 일반 단어 제외
             if (clean.length() >= 2 &&
                     !clean.matches(".*(관련|자격증|필요|있|어|학과|과|전공|하는).*")) {
                 return clean;
@@ -162,8 +168,8 @@ public class OpenAiService {
                 .replace("\n", "\\n");
     }
 
-    // 일반 GPT 응답 (DB 정보 없이)
     private String getGeneralChatResponse(String userMessage) throws Exception {
+        System.out.println("⚠️ [DEBUG] 일반 GPT 응답 사용");
         String requestBody = "{\n" +
                 "  \"model\": \"gpt-3.5-turbo\",\n" +
                 "  \"messages\": [\n" +
@@ -189,6 +195,8 @@ public class OpenAiService {
         }
 
         int statusCode = conn.getResponseCode();
+        System.out.println("✅ [DEBUG] 일반 GPT 응답 코드: " + statusCode);
+
         InputStream responseStream = (statusCode >= 200 && statusCode < 300)
                 ? conn.getInputStream()
                 : conn.getErrorStream();
@@ -196,12 +204,17 @@ public class OpenAiService {
         String responseBody = new BufferedReader(new InputStreamReader(responseStream))
                 .lines().collect(Collectors.joining("\n"));
 
+        System.out.println("✅ [DEBUG] 일반 GPT 응답 바디: " + responseBody);
+
         if (statusCode != 200) {
             throw new RuntimeException("OpenAI API 요청 실패 (" + statusCode + "): " + responseBody);
         }
 
         JsonNode response = objectMapper.readTree(responseBody);
-        return response.get("choices").get(0).get("message").get("content").asText();
+        String result = response.get("choices").get(0).get("message").get("content").asText();
+        System.out.println("✅ [DEBUG] 일반 GPT 최종 응답: " + result);
+
+        return result;
     }
 
 }
