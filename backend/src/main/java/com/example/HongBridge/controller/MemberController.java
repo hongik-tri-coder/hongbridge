@@ -8,10 +8,7 @@ import com.example.HongBridge.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -21,7 +18,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping("/sign-in")
+    @PostMapping("/login")
     public ResponseEntity<?> signIn(@RequestBody SignInDto signInDto) {
         String studentId = signInDto.getStudentId();
         String password = signInDto.getPassword();
@@ -44,7 +41,7 @@ public class MemberController {
         return "success";
     }
 
-    @PostMapping("/sign-up")
+    @PostMapping("/register")
     public ResponseEntity<?> signUp(@RequestBody SignUpDto signUpDto) {
         try {
             log.info("SignUp 요청: {}", signUpDto);
@@ -54,6 +51,13 @@ public class MemberController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer", "");
+        memberService.logout(token);
+        return ResponseEntity.ok("로그아웃 완료");
     }
 
 }

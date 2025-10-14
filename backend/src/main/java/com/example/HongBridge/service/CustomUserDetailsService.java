@@ -31,7 +31,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return User.builder()
                 .username(member.getStudentId())
                 .password(member.getPassword())
-                .authorities(new ArrayList<>()) // 권한 없이 빈 리스트
+                .authorities("ROLE_USER") // 권한 없이 빈 리스트
                 .build();
     }
 }
