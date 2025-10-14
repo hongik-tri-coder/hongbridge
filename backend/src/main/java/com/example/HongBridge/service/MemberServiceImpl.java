@@ -56,4 +56,9 @@ public class MemberServiceImpl implements MemberService {
         // roles 제거
         return MemberDto.toDto(memberRepository.save(signUpDto.toEntity(encodedPassword)));
     }
+
+    @Override
+    public void logout(String token){
+        log.info("로그아웃 요청된 토큰: {}", token);
+    }
 }
