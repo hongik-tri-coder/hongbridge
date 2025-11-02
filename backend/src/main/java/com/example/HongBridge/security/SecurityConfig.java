@@ -29,8 +29,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/members/sign-in").permitAll()
-                        .requestMatchers("/members/sign-up").permitAll()
+                        .requestMatchers("/members/login").permitAll()
+                        .requestMatchers("/members/register").permitAll()
                         .requestMatchers("/chat").permitAll()
                         .requestMatchers("/members/test").hasRole("USER")
                         .anyRequest().authenticated()
