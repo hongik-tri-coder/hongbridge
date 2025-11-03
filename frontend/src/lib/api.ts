@@ -101,22 +101,31 @@ async function fetchJson<T>(
 
 // ===== API 함수들 =====
 
-// 로그인: POST /members/sign-in → JwtToken
+// 로그인: POST /members/login → JwtToken
 export async function signInWithStudentId(body: SignInDto): Promise<JwtToken> {
-  const tokens = await fetchJson<JwtToken>("/members/sign-in", {
+  const tokens = await fetchJson<JwtToken>("/members/login", {
     method: "POST",
     body: JSON.stringify(body),
   });
   return tokens;
 }
 
-// 회원가입: POST /members/sign-up → MemberDto
+// 회원가입: POST /members/register → MemberDto
 export async function signUp(body: SignUpDto): Promise<MemberDto> {
-  const member = await fetchJson<MemberDto>("/members/sign-up", {
+  const member = await fetchJson<MemberDto>("/members/register", {
     method: "POST",
     body: JSON.stringify(body),
   });
   return member;
+}
+
+// 로그아웃: POST /members/logout → "로그아웃 완료"
+export async function logOut(): Promise<string> {
+  const msg = await fetchJson<string>("/members/logout", {
+    method: "POST",
+    auth: true,
+  });
+  return typeof msg === "string" ? msg : "";
 }
 
 // 채팅: POST /chat → string
