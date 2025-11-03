@@ -129,6 +129,11 @@ export async function signUp(body: SignUpDto): Promise<MemberDto> {
   return member;
 }
 
+// 내 정보: GET /members/me → MemberDto
+export async function getMe(): Promise<MemberDto> {
+  return fetchJson<MemberDto>("/members/me", { auth: true });
+}
+
 // 로그아웃: POST /members/logout → "로그아웃 완료"
 export async function logOut(): Promise<string> {
   const msg = await fetchJson<string>("/members/logout", {

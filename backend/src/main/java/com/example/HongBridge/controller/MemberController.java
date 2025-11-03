@@ -5,6 +5,8 @@ import com.example.HongBridge.dto.auth.MemberDto;
 import com.example.HongBridge.dto.auth.SignInDto;
 import com.example.HongBridge.dto.auth.SignUpDto;
 import com.example.HongBridge.service.MemberService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +60,20 @@ public class MemberController {
         String token = authHeader.replace("Bearer", "");
         memberService.logout(token);
         return ResponseEntity.ok("로그아웃 완료");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("인증 필요");
+        }
+        String studentId = user.getUsername();
+        try {
+            MemberDto dto = memberService.getMe(studentId);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
 }

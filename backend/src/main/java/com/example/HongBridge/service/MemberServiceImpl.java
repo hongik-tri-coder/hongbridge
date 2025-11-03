@@ -61,4 +61,11 @@ public class MemberServiceImpl implements MemberService {
     public void logout(String token){
         log.info("로그아웃 요청된 토큰: {}", token);
     }
+
+    @Override
+    public MemberDto getMe(String studentId) {
+        return memberRepository.findByStudentId(studentId)
+                .map(MemberDto::toDto)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+    }
 }

@@ -9,5 +9,7 @@ public interface MemberService {
     MemberDto signUp(SignUpDto signUpDto);
 
     void logout(String token);
+
+    MemberDto getMe(String studentId);
 }
 

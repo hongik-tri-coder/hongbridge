@@ -29,10 +29,9 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/members/login").permitAll()
-                        .requestMatchers("/members/register").permitAll()
+                        // 임시: 멤버 관련 전체 공개로 등록 이슈 확인
+                        .requestMatchers("/members/**").permitAll()
                         .requestMatchers("/chat").permitAll()
-                        .requestMatchers("/members/test").hasRole("USER")
                         .anyRequest().authenticated()
                 )
 
