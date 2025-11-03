@@ -46,6 +46,16 @@ CREATE TABLE date (
     FOREIGN KEY (jmCd) REFERENCES qualification(JMCD)
 );
 
+CREATE TABLE academic_calendar (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  context_year INT NULL,
+  raw_period VARCHAR(100) NOT NULL,
+  type VARCHAR(32) NOT NULL,
+  title VARCHAR(500) NOT NULL,
+  UNIQUE KEY uq_cal (context_year, raw_period, title)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 -- 확인용
 SELECT * FROM field;
 SELECT * FROM qualification;
@@ -55,7 +65,7 @@ UPDATE qualification
 SET course = NULL;
 
 -- 일정 초기화
-TRUNCATE TABLE field;
+TRUNCATE TABLE academic_calendar;
 
 -- 특정 자격증의 일정 보기
 SELECT q.name, d.*
@@ -69,4 +79,13 @@ FROM date d
 JOIN qualification q ON d.jmCd = q.JMCD
 JOIN field f ON q.fieldId = f.id
 WHERE d.year = 2025;
+
+
+
+-- 2025년 일정만
+SELECT * FROM academic_calendar WHERE context_year = 2025;
+
+-- '수강신청' 포함된 일정
+SELECT * FROM academic_calendar WHERE title LIKE '%수강신청%';
+
 
