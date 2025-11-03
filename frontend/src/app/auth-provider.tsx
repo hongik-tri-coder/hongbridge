@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { getAccessToken, logOut, saveTokens, clearTokens } from "@/lib/api";
 
 type User = { studentId: string; name?: string; email?: string } | null;
 
@@ -19,29 +20,37 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   // token 변동 감지
   const setToken = (token: string | null) => {
-    if (token) localStorage.setItem("token", token);
-    else localStorage.removeItem("token");
-    void hydrate(); // 갱신
+    if (token) {
+      // accessToken만 직접 설정 (refresh는 별도 저장 함수 사용)
+      localStorage.setItem("accessToken", token);
+    } else {
+      clearTokens();
+    }
+    void hydrate();
   };
 
   const hydrate = async () => {
     try {
       setLoading(true);
-      // 1) 토큰이 있으면 우선 로그인된 걸로 가정하고 /me로 검증
-      const token = localStorage.getItem("token");
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-      const res = await fetch(`${base}/api/auth/me`, {
-        credentials: "include",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setUser({ studentId: data.studentId, name: data.name, email: data.email });
-      } else {
+      const token = getAccessToken();
+      if (!token) {
+        setUser(null);
+        return;
+      }
+      // accessToken에서 subject(studentId) 복호화
+      const parts = token.split(".");
+      if (parts.length < 2) {
+        setUser(null);
+        return;
+      }
+      try {
+        const payload = JSON.parse(atob(parts[1]));
+        const studentId = payload?.sub as string | undefined;
+        if (studentId) setUser({ studentId });
+        else setUser(null);
+      } catch {
         setUser(null);
       }
-    } catch {
-      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -49,9 +58,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const signOut = async () => {
     try {
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-      // 서버 세션이 있다면 무시해도 안전
-      await fetch(`${base}/api/auth/sign-out`, { method: "POST", credentials: "include" }).catch(() => {});
+      await logOut().catch(() => {});
     } finally {
       setToken(null);
     }

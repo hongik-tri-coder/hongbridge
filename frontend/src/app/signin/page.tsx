@@ -8,10 +8,12 @@ import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";           // ✅ 여기!
 import { toastBus } from "@/utils/toast-bus";
-import { signInWithStudentId } from "@/lib/api";
+import { signInWithStudentId, saveTokens } from "@/lib/api";
+import { useAuth } from "@/app/auth-provider";
 
 export default function SignInPage() {
   const router = useRouter();                           // ✅ 여기!
+  const auth = useAuth();
   const [studentId, setStudentId] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -35,7 +37,9 @@ export default function SignInPage() {
     setLoading(true);
     sendingRef.current = true;
     try {
-      await signInWithStudentId({ studentId: studentId.trim(), password: pwd });
+      const tokens = await signInWithStudentId({ studentId: studentId.trim(), password: pwd });
+      saveTokens(tokens);
+      auth.setToken(tokens.accessToken);
       toastBus.success("로그인 완료", "환영합니다!");
       router.push("/");                                 // ✅ App Router 전환
     } catch (e: any) {
