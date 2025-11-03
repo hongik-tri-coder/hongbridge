@@ -1,0 +1,18 @@
+openai:
+  api:
+    # 환경변수에서 읽습니다. 없으면 기본 URL만 설정됩니다.
+    key: ${OPENAI_API_KEY:}
+    url: ${OPENAI_API_URL:https://api.openai.com/v1/chat/completions}
+  organization:
+    id: ${OPENAI_ORGANIZATION_ID:}
+
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+server:
+  port: 8080
