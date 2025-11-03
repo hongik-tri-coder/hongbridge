@@ -50,6 +50,15 @@ export default function Header() {
             </Button>
           </NextLink>
 
+          <NextLink href="/calendar" aria-current={isActive("/calendar") ? "page" : undefined}>
+            <Button {...baseBtn}
+              bg={isActive("/calendar") ? "black" : "transparent"}
+              color={isActive("/calendar") ? "white" : "black"}
+              _hover={{ bg: "black", color: "white" }}>
+              Calendar
+            </Button>
+          </NextLink>
+
           {/* 로딩 중엔 깜빡임 방지: 아무 것도 안 그림 */}
           {!loading && (
             user ? (

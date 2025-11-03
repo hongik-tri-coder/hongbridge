@@ -1,25 +1,33 @@
-import { Box, Heading, Text, Button, Stack } from "@chakra-ui/react";
-import NextLink from "next/link";
+import { Box, Heading, Text, Stack, SimpleGrid } from "@chakra-ui/react";
 
 export default function HomePage() {
   return (
     <Box>
-      <Heading size="lg" mb={3}>홍브릿지 메인</Heading>
-      <Text color="gray.600" mb={6}>
-        전공 관련 정보를 대화로 쉽게 찾는 AI 챗봇
-      </Text>
-      <Stack direction={{ base: "column", sm: "row" }} gap={3}>
-        <NextLink href="/chat">
-          <Button
-            as="span"
-            bg="black"
-            color="white"
-            _hover={{ bg: "gray.800" }}
-          >
-            대화하러 가기
-          </Button>
-        </NextLink>
-      </Stack>
+      {/* Hero 섹션 */}
+      <Box
+        bgGradient="linear(to-r, gray.900, gray.700)"
+        rounded="xl"
+        p={{ base: 6, md: 10 }}
+        mb={8}
+      >
+        <Heading size="xl" mb={3} color="black">홍브릿지</Heading>
+        <Text fontSize={{ base: "md", md: "lg" }} color="black" mb={5}>
+          전공 정보 탐색과 학교 일정 관리를 하나의 공간에서.
+        </Text>
+        {/* 기능 카드 영역 제거 */}
+      </Box>
+
+      {/* 정보 블록 */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+        <Box border="1px solid" borderColor="gray.200" rounded="lg" p={5}>
+          <Heading size="sm" mb={2}>챗봇</Heading>
+          <Text color="gray.600">자격증, 학사일정 정보를 챗봇에게 물어보세요!</Text>
+        </Box>
+        <Box border="1px solid" borderColor="gray.200" rounded="lg" p={5}>
+          <Heading size="sm" mb={2}>캘린더</Heading>
+          <Text color="gray.600">월별 일정을 한눈에 관리하세요!</Text>
+        </Box>
+      </SimpleGrid>
     </Box>
   );
 }

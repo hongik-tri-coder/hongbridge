@@ -34,6 +34,15 @@ export interface MemberDto {
   majorId: number;
 }
 
+// ===== 스케줄 타입 =====
+export interface ScheduleDto {
+  id?: number;
+  title: string;
+  description?: string;
+  start: string; // ISO LocalDateTime (e.g., 2025-11-03T10:00)
+  end: string;   // ISO LocalDateTime
+}
+
 // ===== 토큰 로컬 저장소 헬퍼 =====
 // ✅ 키 이름을 "accessToken" / "refreshToken"으로 통일
 const ACCESS_TOKEN_KEY = "accessToken";
@@ -59,7 +68,8 @@ async function fetchJson<T>(
   path: string,
   init: RequestInit & { auth?: boolean } = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  const buildUrl = (base: string) => `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = buildUrl(API_BASE);
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -139,4 +149,37 @@ export async function sendChat(message: string): Promise<string> {
 
   // 컨트롤러가 String 반환하므로 그대로
   return reply;
+}
+
+// ===== 일정 API =====
+// 내 일정 목록 조회: GET /schedules → Schedule[]
+export async function getSchedules(): Promise<ScheduleDto[]> {
+  return await fetchJson<ScheduleDto[]>("/schedules", { method: "GET", auth: true });
+}
+
+// 일정 생성: POST /schedules → Schedule
+export async function createSchedule(body: ScheduleDto): Promise<ScheduleDto> {
+  return await fetchJson<ScheduleDto>("/schedules", {
+    method: "POST",
+    body: JSON.stringify(body),
+    auth: true,
+  });
+}
+
+// 일정 수정: PUT /schedules/{id} → Schedule
+export async function updateSchedule(id: number, body: Partial<ScheduleDto>): Promise<ScheduleDto> {
+  return await fetchJson<ScheduleDto>(`/schedules/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+    auth: true,
+  });
+}
+
+// 일정 삭제: DELETE /schedules/{id} → "일정이 삭제되었습니다."
+export async function deleteSchedule(id: number): Promise<string> {
+  const msg = await fetchJson<string>(`/schedules/${id}`, {
+    method: "DELETE",
+    auth: true,
+  });
+  return typeof msg === "string" ? msg : "";
 }
