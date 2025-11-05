@@ -20,7 +20,7 @@ public class ScheduleEmailScheduler {
     private final EmailService emailService;
 
     // 매일 저녁 8시에 실행
-    @Scheduled(cron = "0 0 20 * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void sendTomorrowScheduleEmails() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         log.info("=== [홍브릿지] {} 일정 메일 전송 시작 ===", tomorrow);
