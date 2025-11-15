@@ -3,6 +3,8 @@ package com.example.HongBridge.service;
 import com.example.HongBridge.dto.auth.JwtToken;
 import com.example.HongBridge.dto.auth.MemberDto;
 import com.example.HongBridge.dto.auth.SignUpDto;
+import com.example.HongBridge.dto.auth.UpdateMemberDto;
+import com.example.HongBridge.entity.Member;
 import com.example.HongBridge.repository.MemberRepository;
 import com.example.HongBridge.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -68,4 +70,25 @@ public class MemberServiceImpl implements MemberService {
                 .map(MemberDto::toDto)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
+
+
+    @Transactional
+    public MemberDto updateMember(String studentId, UpdateMemberDto dto) {
+
+        Member member = memberRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+        // 업데이트하려는 값만 적용
+        if (dto.getName() != null) member.setName(dto.getName());
+        if (dto.getGrade() != null) member.setGrade(dto.getGrade());
+        if (dto.getEmail() != null) member.setEmail(dto.getEmail());
+        if (dto.getMajorId() != null) member.setMajorId(dto.getMajorId());
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            member.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        return MemberDto.toDto(member);
+    }
+
 }

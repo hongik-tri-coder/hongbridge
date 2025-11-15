@@ -1,9 +1,6 @@
 package com.example.HongBridge.controller;
 
-import com.example.HongBridge.dto.auth.JwtToken;
-import com.example.HongBridge.dto.auth.MemberDto;
-import com.example.HongBridge.dto.auth.SignInDto;
-import com.example.HongBridge.dto.auth.SignUpDto;
+import com.example.HongBridge.dto.auth.*;
 import com.example.HongBridge.service.MemberService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -75,5 +72,23 @@ public class MemberController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMe(
+            @AuthenticationPrincipal User user,
+            @RequestBody UpdateMemberDto dto) {
+
+        if (user == null) {
+            return ResponseEntity.status(401).body("인증 필요");
+        }
+
+        try {
+            MemberDto updated = memberService.updateMember(user.getUsername(), dto);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
 }
