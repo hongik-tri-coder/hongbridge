@@ -2,9 +2,11 @@ package com.example.HongBridge.service;
 
 import com.example.HongBridge.entity.Field;
 import com.example.HongBridge.entity.Qualification;
+import com.example.HongBridge.entity.AcademicCalendar;
 import com.example.HongBridge.repository.FieldRepository;
 import com.example.HongBridge.repository.QualificationRepository;
 import com.example.HongBridge.repository.DateRepository;
+import com.example.HongBridge.repository.AcademicCalendarRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,13 +35,16 @@ public class OpenAiService {
     private final FieldRepository fieldRepository;
     private final QualificationRepository qualificationRepository;
     private final DateRepository dateRepository;
+    private final AcademicCalendarRepository academicCalendarRepository;
 
     public OpenAiService(FieldRepository fieldRepository,
                          QualificationRepository qualificationRepository,
-                         DateRepository dateRepository) {
+                         DateRepository dateRepository,
+                         AcademicCalendarRepository academicCalendarRepository) {
         this.fieldRepository = fieldRepository;
         this.qualificationRepository = qualificationRepository;
         this.dateRepository = dateRepository;
+        this.academicCalendarRepository = academicCalendarRepository;
     }
 
     public String getChatResponse(String userMessage) throws Exception {
@@ -52,6 +57,11 @@ public class OpenAiService {
             return "질문에서 키워드를 찾지 못했습니다. 다시 입력해 주세요.";
         }
 
+        List<String> dbInfos = new ArrayList<>();
+
+        // =============================
+        // 1) 자격증 및 분야 검색
+        // =============================
         List<Field> matchedFields = fieldRepository
                 .findByDepth1ContainingOrDepth2Containing(keyword, keyword);
 
@@ -61,13 +71,7 @@ public class OpenAiService {
         System.out.println("✅ [DEBUG] 매칭된 Field 개수: " + matchedFields.size());
         System.out.println("✅ [DEBUG] 매칭된 Qualification 개수: " + matchedQualifications.size());
 
-        if (matchedFields.isEmpty() && matchedQualifications.isEmpty()) {
-            System.out.println("⚠️ [DEBUG] DB 매칭 실패 → 일반 GPT 응답 사용");
-            return getGeneralChatResponse(userMessage);
-        }
-
-        List<String> dbInfos = new ArrayList<>();
-
+        // 기존 자격증 DB 정보 추가
         for (Qualification q : matchedQualifications) {
             Field f = q.getField();
             StringBuilder infoBuilder = new StringBuilder();
@@ -78,12 +82,9 @@ public class OpenAiService {
             dateRepository.findTopByJmCdOrderByYearDescPeriodDesc(q.getJmCd())
                     .ifPresent(d -> {
                         infoBuilder.append(" | 최근 시험 일정:");
-                        // 필기
                         infoBuilder.append(" [필기 등록] ").append(d.getDocRegStart()).append(" ~ ").append(d.getDocRegEnd());
                         infoBuilder.append(" [필기 응시] ").append(d.getDocExamStart()).append(" ~ ").append(d.getDocExamEnd());
                         infoBuilder.append(" [필기 합격] ").append(d.getDocPass());
-
-                        // 실기
                         infoBuilder.append(" [실기 등록] ").append(d.getPracRegStart()).append(" ~ ").append(d.getPracRegEnd());
                         infoBuilder.append(" [실기 응시] ").append(d.getPracExamStart()).append(" ~ ").append(d.getPracExamEnd());
                         infoBuilder.append(" [실기 합격] ").append(d.getPracPass());
@@ -103,12 +104,9 @@ public class OpenAiService {
                 dateRepository.findTopByJmCdOrderByYearDescPeriodDesc(q.getJmCd())
                         .ifPresent(d -> {
                             infoBuilder.append(" | 최근 시험 일정:");
-                            // 필기
                             infoBuilder.append(" [필기 등록] ").append(d.getDocRegStart()).append(" ~ ").append(d.getDocRegEnd());
                             infoBuilder.append(" [필기 응시] ").append(d.getDocExamStart()).append(" ~ ").append(d.getDocExamEnd());
                             infoBuilder.append(" [필기 합격] ").append(d.getDocPass());
-
-                            // 실기
                             infoBuilder.append(" [실기 등록] ").append(d.getPracRegStart()).append(" ~ ").append(d.getPracRegEnd());
                             infoBuilder.append(" [실기 응시] ").append(d.getPracExamStart()).append(" ~ ").append(d.getPracExamEnd());
                             infoBuilder.append(" [실기 합격] ").append(d.getPracPass());
@@ -118,8 +116,27 @@ public class OpenAiService {
             }
         }
 
+        // =============================
+        // 2) 학사 일정 검색
+        // =============================
+        List<AcademicCalendar> academicMatches =
+                academicCalendarRepository.findByTitleContaining(keyword);
+
+        System.out.println("✅ [DEBUG] 매칭된 학사 일정 개수: " + academicMatches.size());
+
+        for (AcademicCalendar ac : academicMatches) {
+            String info = String.format(
+                    "- 학사 일정: [%s] %s | 기간: %s | 연도: %s",
+                    ac.getType(),
+                    ac.getTitle(),
+                    ac.getRaw_period(),
+                    ac.getContext_Year()
+            );
+            dbInfos.add(info);
+        }
+
         if (dbInfos.isEmpty()) {
-            System.out.println("⚠️ [DEBUG] 매칭된 자격증 정보 없음 → 일반 GPT 응답 사용");
+            System.out.println("⚠️ [DEBUG] 매칭된 정보 없음 → 일반 GPT 응답 사용");
             return getGeneralChatResponse(userMessage);
         }
 
@@ -131,9 +148,9 @@ public class OpenAiService {
 
         String systemPrompt =
                 "너는 대학생 진로 상담을 도와주는 전문가야.\n" +
-                        "사용자가 특정 전공, 학과, 분야에 대해 질문하면 반드시 아래 자격증 데이터베이스 정보를 기반으로 자격증을 추천해줘.\n" +
+                        "사용자가 학과, 자격증, 시험 일정, 학사 일정 등과 관련된 질문을 하면 반드시 아래 데이터베이스 정보를 기반으로 답변해야 해.\n" +
                         "다른 정보는 사용하지 말고 반드시 아래 정보만 기반으로 답변해.\n\n" +
-                        "=== 자격증 데이터베이스 ===\n" +
+                        "=== DB 정보 ===\n" +
                         dbInfo + "\n" +
                         "=========================";
 
@@ -186,6 +203,18 @@ public class OpenAiService {
 
     private String extractKeyword(String message) {
         if (message == null || message.isEmpty()) return "";
+        // 학사 일정 핵심 키워드 리스트
+        String[] academicKeywords = {
+                "수강신청", "개강", "종강", "등록", "휴학", "복학",
+                "중간고사", "기말고사", "입학", "오리엔테이션",
+                "신청", "강의평가", "성적"
+        };
+
+        // 우선 학사 일정 키워드를 먼저 찾음
+        for (String key : academicKeywords) {
+            if (message.contains(key)) return key;
+        }
+
         String[] tokens = message.split("\\s+");
         for (String token : tokens) {
             String clean = token.replaceAll("[^가-힣a-zA-Z0-9]", "");
