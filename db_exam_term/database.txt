@@ -55,37 +55,31 @@ CREATE TABLE academic_calendar (
   UNIQUE KEY uq_cal (context_year, raw_period, title)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    opened_grade VARCHAR(20),
+    department VARCHAR(100),
+    course_name VARCHAR(255),
+    enrolled INT,
+    professor VARCHAR(255),
+    schedule VARCHAR(255),
+    UNIQUE KEY uq_course (department(50), course_name(100), professor(100), schedule(50))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+DROP TABLE course;
+
+SELECT department, COUNT(*) 
+FROM course
+GROUP BY department
+ORDER BY COUNT(*) DESC;
 
 -- 확인용
-SELECT * FROM field;
-SELECT * FROM qualification;
-SELECT * FROM date;
-
-UPDATE qualification
-SET course = NULL;
-
 -- 일정 초기화
-TRUNCATE TABLE academic_calendar;
+TRUNCATE TABLE course;
 
--- 특정 자격증의 일정 보기
-SELECT q.name, d.*
-FROM qualification q
-JOIN date d ON q.JMCD = d.jmCd
-WHERE q.name = '전기공사기사';
-
--- 2025년 전체 시험 일정
-SELECT q.name, f.depth1, f.depth2, d.*
-FROM date d
-JOIN qualification q ON d.jmCd = q.JMCD
-JOIN field f ON q.fieldId = f.id
-WHERE d.year = 2025;
-
-
-
+select *from course;
 -- 2025년 일정만
-SELECT * FROM academic_calendar WHERE context_year = 2025;
-
--- '수강신청' 포함된 일정
-SELECT * FROM academic_calendar WHERE title LIKE '%수강신청%';
-
+SELECT * FROM academic_calendar;
 
