@@ -34,6 +34,14 @@ export interface MemberDto {
   majorId: number;
 }
 
+export interface UpdateMemberDto {
+  name?: string;
+  grade?: number;
+  email?: string;
+  majorId?: number;
+  password?: string;
+}
+
 // ===== 스케줄 타입 =====
 export interface ScheduleDto {
   id?: number;
@@ -132,6 +140,14 @@ export async function signUp(body: SignUpDto): Promise<MemberDto> {
 // 내 정보: GET /members/me → MemberDto
 export async function getMe(): Promise<MemberDto> {
   return fetchJson<MemberDto>("/members/me", { auth: true });
+}
+
+export async function updateMe(body: UpdateMemberDto): Promise<MemberDto> {
+  return fetchJson<MemberDto>("/members/me", {
+    method: "PUT",
+    body: JSON.stringify(body),
+    auth: true,
+  });
 }
 
 // 로그아웃: POST /members/logout → "로그아웃 완료"
