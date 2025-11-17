@@ -119,7 +119,7 @@ export default function ProfilePage() {
                   <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
                     <Field.Root>
                       <Field.Label>학번</Field.Label>
-                      <Input value={String(me.studentId)} isDisabled />
+                      <Input value={String(me.studentId)} disabled />
                     </Field.Root>
                     <Field.Root>
                       <Field.Label>이름</Field.Label>
