@@ -2,7 +2,7 @@
 import RequireAuth from "@/components/RequireAuth";
 import { getMe, MemberDto, updateMe, signInWithStudentId } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box, Heading, Text, VStack, HStack, Badge, Spinner, Button, Input, Field, Dialog } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, HStack, Spinner, Button, Input, Field, Dialog, SimpleGrid } from "@chakra-ui/react";
 import { toastBus } from "@/utils/toast-bus";
 import { useAuth } from "@/app/auth-provider";
 
@@ -107,66 +107,73 @@ export default function ProfilePage() {
 
   return (
     <RequireAuth>
-      <Box>
+      <Box maxW="container.md" mx="auto">
         <Heading size="lg" mb={4}>내 프로필</Heading>
         {loading ? (
           <HStack><Spinner /><Text>불러오는 중…</Text></HStack>
         ) : me ? (
-          <VStack align="start" gap={4}>
-            <HStack justify="space-between" w="100%">
-              <HStack>
-                <Text fontWeight="bold">학번</Text>
-                <Badge colorPalette="blue">{me.studentId}</Badge>
-              </HStack>
-              {!editing && (
-                <Button size="sm" onClick={openEditWithPassword}>수정</Button>
+          <VStack align="stretch" gap={5}>
+            <Box p={6} bg="gray.50" borderRadius="md" borderWidth="1px">
+              {editing ? (
+                <VStack align="stretch" gap={5}>
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                    <Field.Root>
+                      <Field.Label>학번</Field.Label>
+                      <Input value={String(me.studentId)} isDisabled />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label>이름</Field.Label>
+                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label>학년</Field.Label>
+                      <Input type="number" value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="1" />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label>이메일</Field.Label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hong@example.com" />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label>전공 ID</Field.Label>
+                      <Input type="number" value={majorId} onChange={(e) => setMajorId(e.target.value)} placeholder="10" />
+                    </Field.Root>
+                  </SimpleGrid>
+                  <HStack justify="flex-end" gap={3}>
+                    <Button onClick={onSave} disabled={saving || !dirty} aria-busy={saving} bg="black" color="white" _hover={{ bg: "gray.800" }}>
+                      {saving ? "저장 중…" : "저장"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setEditing(false); setName(me.name ?? ""); setEmail(me.email ?? ""); setGrade(me.grade != null ? String(me.grade) : ""); setMajorId(me.majorId != null ? String(me.majorId) : ""); }}>취소</Button>
+                  </HStack>
+                </VStack>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                  <Box>
+                    <Text fontWeight="medium" color="gray.600">학번</Text>
+                    <Text mt={1}>{me.studentId}</Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="medium" color="gray.600">이름</Text>
+                    <Text mt={1}>{me.name || "-"}</Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="medium" color="gray.600">학년</Text>
+                    <Text mt={1}>{me.grade ?? "-"}</Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="medium" color="gray.600">이메일</Text>
+                    <Text mt={1}>{me.email || "-"}</Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="medium" color="gray.600">전공 ID</Text>
+                    <Text mt={1}>{me.majorId ?? "-"}</Text>
+                  </Box>
+                </SimpleGrid>
               )}
-            </HStack>
-
-            {editing ? (
-              <VStack align="stretch" w="100%" gap={3}>
-                <Field.Root>
-                  <Field.Label>이름</Field.Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label>학년</Field.Label>
-                  <Input type="number" value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="1" />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label>이메일</Field.Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hong@example.com" />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label>전공 ID</Field.Label>
-                  <Input type="number" value={majorId} onChange={(e) => setMajorId(e.target.value)} placeholder="10" />
-                </Field.Root>
-                <HStack>
-                  <Button onClick={onSave} disabled={saving || !dirty} aria-busy={saving} bg="black" color="white" _hover={{ bg: "gray.800" }}>
-                    {saving ? "저장 중…" : "저장"}
-                  </Button>
-                  <Button variant="outline" onClick={() => { setEditing(false); setName(me.name ?? ""); setEmail(me.email ?? ""); setGrade(me.grade != null ? String(me.grade) : ""); setMajorId(me.majorId != null ? String(me.majorId) : ""); }}>취소</Button>
-                </HStack>
-              </VStack>
-            ) : (
-              <VStack align="start" gap={3}>
-                <HStack>
-                  <Text fontWeight="bold">이름</Text>
-                  <Text>{me.name || "-"}</Text>
-                </HStack>
-                <HStack>
-                  <Text fontWeight="bold">학년</Text>
-                  <Text>{me.grade ?? "-"}</Text>
-                </HStack>
-                <HStack>
-                  <Text fontWeight="bold">이메일</Text>
-                  <Text>{me.email || "-"}</Text>
-                </HStack>
-                <HStack>
-                  <Text fontWeight="bold">전공 ID</Text>
-                  <Text>{me.majorId ?? "-"}</Text>
-                </HStack>
-              </VStack>
+            </Box>
+            {!editing && (
+              <HStack justify="flex-end" w="100%">
+                <Button size="sm" onClick={openEditWithPassword}>수정</Button>
+              </HStack>
             )}
           </VStack>
         ) : (
