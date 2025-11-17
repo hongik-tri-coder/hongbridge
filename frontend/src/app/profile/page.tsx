@@ -1,11 +1,13 @@
 "use client";
 import RequireAuth from "@/components/RequireAuth";
-import { getMe, MemberDto, updateMe } from "@/lib/api";
+import { getMe, MemberDto, updateMe, signInWithStudentId } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box, Heading, Text, VStack, HStack, Badge, Spinner, Button, Input, Field } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, HStack, Badge, Spinner, Button, Input, Field, Dialog } from "@chakra-ui/react";
 import { toastBus } from "@/utils/toast-bus";
+import { useAuth } from "@/app/auth-provider";
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const [me, setMe] = useState<MemberDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -15,6 +17,9 @@ export default function ProfilePage() {
   const [majorId, setMajorId] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const sendingRef = useRef(false);
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [pwd, setPwd] = useState("");
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -78,6 +83,28 @@ export default function ProfilePage() {
     }
   };
 
+  const openEditWithPassword = () => {
+    setPwd("");
+    setPwdOpen(true);
+  };
+
+  const onConfirmPassword = async () => {
+    if (!user?.studentId) return;
+    if (!pwd.trim()) { toastBus.warning("입력 확인", "비밀번호를 입력해 주세요."); return; }
+    setChecking(true);
+    try {
+      await signInWithStudentId({ studentId: user.studentId, password: pwd });
+      setPwdOpen(false);
+      setEditing(true);
+      toastBus.info("확인 완료", "비밀번호가 확인되었습니다.");
+    } catch (e: any) {
+      const msg = e?.status === 401 || e?.status === 403 ? "비밀번호가 올바르지 않습니다." : (e?.message ?? "인증에 실패했어요.");
+      toastBus.error("확인 실패", msg);
+    } finally {
+      setChecking(false);
+    }
+  };
+
   return (
     <RequireAuth>
       <Box>
@@ -92,7 +119,7 @@ export default function ProfilePage() {
                 <Badge colorPalette="blue">{me.studentId}</Badge>
               </HStack>
               {!editing && (
-                <Button size="sm" onClick={() => setEditing(true)}>수정</Button>
+                <Button size="sm" onClick={openEditWithPassword}>수정</Button>
               )}
             </HStack>
 
@@ -146,6 +173,31 @@ export default function ProfilePage() {
           <Text>프로필을 불러오지 못했습니다.</Text>
         )}
       </Box>
+      <Dialog.Root open={pwdOpen} onOpenChange={(e) => setPwdOpen(e.open)} placement="center">
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>비밀번호 확인</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <VStack align="stretch" gap={3}>
+                <Text color="gray.600">프로필을 수정하려면 비밀번호를 입력해 주세요.</Text>
+                <Field.Root>
+                  <Field.Label>비밀번호</Field.Label>
+                  <Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} placeholder="••••••••" />
+                </Field.Root>
+              </VStack>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <HStack>
+                <Button variant="outline" onClick={() => setPwdOpen(false)}>취소</Button>
+                <Button bg="black" color="white" _hover={{ bg: "gray.800" }} onClick={onConfirmPassword} disabled={checking} aria-busy={checking}>{checking ? "확인 중…" : "확인"}</Button>
+              </HStack>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </RequireAuth>
   );
 }
