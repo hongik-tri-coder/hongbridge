@@ -74,3 +74,7 @@ coverage/
 .cache/
 **/.turbo/
 backend/src/main/resources/application.properties
+
+#EC2 / CI/CD
+
+HongBridge-key.pem
