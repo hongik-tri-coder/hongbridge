@@ -394,7 +394,7 @@ export default function CalendarPage() {
                 <Heading size="sm" mb={3}>일정 추가</Heading>
                 <VStack align="stretch" gap={3}>
                   <Input placeholder="제목" value={title} onChange={(e) => setTitle(e.target.value)} />
-                  <Textarea placeholder="설명(선택)" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Textarea placeholder="설명" value={description} onChange={(e) => setDescription(e.target.value)} />
                   <HStack>
                     <Box flex="1">
                       <Text fontSize="sm" mb={1}>시작</Text>
@@ -422,7 +422,7 @@ export default function CalendarPage() {
                 <Heading size="sm" mb={3}>일정 상세</Heading>
                 <VStack align="stretch" gap={3}>
                   <Input placeholder="제목" value={etitle} onChange={(e) => setETitle(e.target.value)} readOnly={!edit} />
-                  <Textarea placeholder="설명(선택)" value={edescription} onChange={(e) => setEDescription(e.target.value)} readOnly={!edit} />
+                  <Textarea placeholder="설명" value={edescription} onChange={(e) => setEDescription(e.target.value)} readOnly={!edit} />
                   <HStack>
                     <Box flex="1">
                       <Text fontSize="sm" mb={1}>시작</Text>
